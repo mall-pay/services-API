@@ -1,3 +1,6 @@
-This is an initial readme file for MIA-API repository.
+# MALL Pay Insurance API for partners
 
-This API is a work in progress and should be trated as such.
+This is the API description for insurance services for Czech e-shop integration.
+
+## Contents
+- apiary.apib - this is the source of documentation in API Blueprint format, it is online published to [Apiary](https://miaapi.docs.apiary.io/). This can be edited directly using text editor or online using Apiary (synchronization is two-way)
