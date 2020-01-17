@@ -84,6 +84,9 @@ Get info on services available for sent products.
 
 ## Create Contract [/v1/contract]
 
+* On Response 
+    * Variable symbol of payment, under which the payment of the e-shop is expected and also the payment in case of overpayment based on storno.
+
 ### Create Contract [POST]
 Create a contract based on available services offering.
 
@@ -94,6 +97,9 @@ Create a contract based on available services offering.
     + Attributes (ContractCreateResponse)
 
 ## Contract Operations [/v1/contract/{contract_id}]
+
+* On Response 
+    * Variable symbol of payment, under which the payment of the e-shop is expected and also the payment in case of overpayment based on storno.
 
 ### Contract Detail [GET]
 Get detail - status of selected Contract.
