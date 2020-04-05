@@ -1,5 +1,5 @@
 FORMAT: 1A
-HOST: api.services.mallpay.cz
+HOST: https://api.services.mallpay.cz
 
 # MALL Pay Insurance API for partners
 
@@ -58,7 +58,9 @@ Subject to general terms and conditions, a contract can also be canceled. Respon
 
 ### Contract Detail
 
-Provides information about created contracts and their status. 
+Provides information about created contracts and their status.
+
+# Group Application operations
 
 ## Authorize [/v1/partner/authorize]
 
@@ -120,6 +122,28 @@ Update selected contract.
 
 + Response 200 (application/json; charset=utf-8)
     + Attributes (ContractUpdateResponse)
+
+# Group Merchantsite operations
+
+Services that should be developed and exposed by partner to allow MALL Pay Insurance API asynchronously inform the partner about important changes regarding particular *contract*
+
+> **ATTENTION:** This API is NOT exposed from MALL Pay Insurance API. Instead, it should be developed by partner and accept calls specified below.
+
+## Contract notification [/v1/partner/{contract.merchantUrls.notificationEndpoint}]
+We use this resource when there is need to let you know about important changes within particular *contract*.
+
+### Contract notification [POST]
+Notify partner about changes in contract's fields `partner_number`, `state`, `negotiation_date`. Response with status codes 200 or 204 is considered as success response.
+
++ Request (application/json; charset=utf-8)
+     + Attributes (ContractNotificationRequest)
+
++ Response 200 (application/json; charset=utf-8)
+     {
+        "status": "OK"
+     }
+
++ Response 204 (application/json; charset=utf-8)
 
 
 # Data Structures
@@ -251,6 +275,7 @@ The information above means that multiple service groups are not only encouraged
 ### Properties
 + `customer` (CustomerBase, required) - Destionation customer of the services
 + `order` (EshopOrderDetail, required) - Detail of the order from eshop
++ `merchantUrls` (MerchantUrls, optional) - URLs, on which partner wants to be notified about updates. URLs are specified by partner when contract is created.
 
 ##EshopOrderDetail (object)
 ### Properties
@@ -460,3 +485,12 @@ Document in request
 ## Errors (object)
 ### Properties
 + errors (array[Error], fixed-type, required) - Array with errors
+
+## MerchantUrls (object)
+Collection of notification URLs specified by partner
+### Properties
++ `notificationEndpoint`: `https://notify.partner.com` (string, required) - URL of the partner used as notification endpoint for obtaining updates about contract
+
+## ContractNotificationRequest (object)
+### Properties
++ `contractId`: 12 (number, required)
