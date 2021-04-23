@@ -466,10 +466,10 @@ Customer data
         + `titleAfter`: `CSc.` (string, optional, nullable) - Academical degree, behind name
     + `fullName`: `Ing. John Newborn, Csc.` (string, required) - Customer full name, including academical degrees and salutation. Required only if `firstName` or `lastName` are empty.
 + `email`: `john.newborn@country.com` (string, required) - E-mail address of customer
-+ `phone`: `+420123456789` (string, required) - Phone number with country code (including leading `+`)
++ `phone`: `+420123456789` (string, required) - Phone number with country code (including leading `+`). Numbers without country code are regarded as czech numbers (+420).
 + `addresses` (array[Address], optional) - Addresses. All types are allowed.
-+ `tin`: `12333321` (string, optional, nullable) - Tax identification number (ICO)
-+ `vatin`: `CZ8402154456` (string, optional, nullable) - VAT identification number
++ `tin`: `12333321` (string, optional, nullable) - Tax identification number (ICO). It has to contain only digits.
++ `vatin`: `CZ8402154456` (string, optional, nullable) - VAT identification number. It has to contain two letters and 2-10 digits.
 + `partnerCustomerId`: `123` (string, optional, nullable) - ID of customer in eshop
 
 ## Error (object)
