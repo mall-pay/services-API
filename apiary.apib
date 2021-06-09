@@ -15,10 +15,11 @@ This API allows partners to retrieve info about services available for eligible 
 ### General workflow
 
 1. Log in.
-2. Create offer - request service offers available for products specified.
-3. Create a contract based on above offer of services.
-4. Provide required information for the contract.
-5. Activate the contract.
+2. Get service prices - request the informative prices for services available for products specified. The primary aim of this resource is to provide the service prices quickly. The resource can be used on product detail or in batch processing. Contract cannot be created based on this information.
+3. Create offer - request service offer available for products specified. The aim of this resource is to get an offer, so that the contract could be created based on this offer.
+4. Create a contract based on the offer of services from step 3.
+5. Provide required information for the contract.
+6. Activate the contract.
 
 __Optional steps__:
 
@@ -69,13 +70,17 @@ curl -H "Authorization: Bearer secret_token" https://api.services.mallpay.cz/v1/
 
 Enables the partner to log in. It is required to be able to use all the other endpoints.
 
+### Get service prices
+
+Lets the partner to request the prices about available services for products. In order to do so, the partners has to provide information about products they require services for. Endpoint response contains services with their prices (and the possible combinations of the services) for the provided products. The information in the response is informative only. In case partner wants to create a contract, an offer needs to be requested (see further).
+
 ### Create Offer
 
-Lets the partner to request available services for products. In order to do so, the partner has to provide information about products they require services for. Endpoint response contains services (and their possible combinations) for the provided products.
+This endpoint has very similar behaviour as previous one (Get service prices) with the exception that contract can be created based on the response from this offer, which can be related using its identification. The offer is valid for two months.
 
 ### Create Contract
 
-Based on an offer received from Create Offer endpoint and their customer choices, enables a partner to create a contract for the services selected. If it was successfully created, response contains information about the created contract, errors explaining what went wrong otherwise.
+Based on the offer received from Create Offer endpoint and their customer choices, enables a partner to create a contract for the services selected. The contract can be created only during the validity of the offer (length of validity will be agreed with each partner, default validity is 2 months). If it was successfully created, response contains information about the created contract, errors explaining what went wrong otherwise.
 
 ### Update Contract
 
@@ -111,10 +116,21 @@ Log in to be able to use other endpoints.
 + Response 200 (application/json; charset=utf-8)
     + Attributes (AuthorizationResponse)
 
+## Get service prices [/v1/service-prices]
+
+### Request Available Services and their prices [POST]
+Get info on services available for sent products. The primary aim of this resource is to provide the service prices only. The resource can be used on product detail or in batch processing. The information provided by this resource is not sufficient to create a contract (offer identification is missing).
+
++ Request (application/json; charset=utf-8)
+    + Attributes (RequestServicesRequest)
+
++ Response 200 (application/json; charset=utf-8)
+    + Attributes (ServicePricesResponse)
+
 ## Create Offer [/v1/offer]
 
-### Request Available Services [POST]
-Get info on services available for sent products.
+### Request Available Services in an offer [POST]
+Get info on services available for sent products shortly before creating the contract. The aim of this resource is to get an offer, so that the contract could be created based on identification of this offer. The default validity of the offer is 2 months.
 
 + Request (application/json; charset=utf-8)
     + Attributes (RequestServicesRequest)
@@ -200,9 +216,14 @@ Notify partner about changes in contract's fields `partner_number`, `state`, `ne
 ### Properties
 + `items` (array[ServiceRequestProduct], required) - Array of products you want to receive possible services for. If you order multiple pieces of the same product, it is expected each piece will be represented by separate item, hence there is no quantity field.
 
+## ServicePricesResponse (object)
+### Properties
++ `items` (array[ServicePricesProductResponse], required)
+
 ## RequestServicesResponse (object)
 ### Properties
 + `offerId`: `UUID-comes-here` (string, required) - Id of the offers
++ `validity`: `2018-10-25` (string, required) - date by when the offer is valid. Length of offer's validity is agreed with the partner, but maximal length is 2 months.
 + `items` (array[ServiceResponseProduct], required) - description
 
 ## ContractCreateRequest (CreateContract)
@@ -276,6 +297,10 @@ Type of financial ammount.
 + `id`: `uniqueproductid` (string, required)
 + `categorySlug`: `Camera-Still-Picture-Analog-35mm` (string, required) - Category slug, is used for product service selection.
 
+## ServicePricesProductResponse (BaseProductDetail)
+### Properties
++ `services` (array[ServicePricesResponseGroup]) - services available for the product piece
+
 ## ServiceResponseProduct (BaseProductDetail)
 ### Properties
 + `services` (array[ServiceResponseGroup]) - services available for the product piece
@@ -283,6 +308,18 @@ Type of financial ammount.
 ## ContractCreateProduct (object)
 ### Properties
 + `id`: `uniqueproductid` (string, required) - Id of product returned in request for services
+
+## ServicePricesItemResponse (object)
+Individual selectable service.
+### Properties
++ `slug`: `option-slug` (string, required) - Unique slug of option
++ `name`: `ADP (Accidental Damage Protection) 1 year` (string, required)
++ `shortName`: `1 year` (string, required)
++ `description`: `Description of the service, may be quite long` (string, optional, nullable) - Description of a service offering item in the group.
++ `priority`: 1 (number, optional, nullable) - Offer ordering information, lower number means higher priority.
++ `totalPrice` (ServiceAmount, required) - Price of service including VAT and possibly type of price.
++ `totalVat` (VatAmount, required) - Total VAT for service.
++ `standalone`: true (boolean, required) - If service is marked as `standalone`, it is __not__ mutually exclusive with other services within the service group and may be selected individually, much like HTML checkbox. This allows for grouping of services that are not exclusive to each other.
 
 ## ServiceResponseItem (object)
 Individual selectable service.
@@ -296,6 +333,19 @@ Individual selectable service.
 + `totalPrice` (ServiceAmount, required) - Price of service including VAT and possibly type of price.
 + `totalVat` (VatAmount, required) - Total VAT for service.
 + `standalone`: true (boolean, required) - If service is marked as `standalone`, it is __not__ mutually exclusive with other services within the service group and may be selected individually, much like HTML checkbox. This allows for grouping of services that are not exclusive to each other.
+
+## ServicePricesResponseGroup (object)
+A grouping (for example by type or length) of individual services the customer may select from. Individual services go into `serviceGroupOptions` array.
+Unless the individual service is marked as `standalone`, it is assumed that the services within `serviceGroupOptions` mutually exclude each other, much like HTML radio button.
+The information above means that multiple service groups are not only encouraged, but may be required.
+### Properties
++ `id`: `1` (string, required) - Unique Id of the group.
++ `slug`: `adp-goup-slug` (string, required) - Slug of the category name
++ `name`: `ADP (Accidental Damage Protection) Insurance` (string, required) - Plain text name of options group, will be used for display.
++ `description`: `This is the description of the service group, which may, actually, be much longer than this` (string, optional, nullable) - Description of the group, to display to customers.
++ `options` (array[ServicePricesItemResponse], required) - A set of mutually exclusive options of (roughly) the same meaning this group is made of.
++ `priority`: 1 (number, optional, nullable) - Priority of the group as a whole, used for ordering of offers. Lower number means higher priority. Groups with same priority can be ordered at will (as long as they are ordered before/after any groups with lower/higher priority. If no priority is provided, may be ordered at will (after higher priority groups).
++ `excludes`: `2`, `3` (array[string], optional, nullable) - Ids of groups this group is mutually exclusive with. Customer cannot select offers from this group and **excludes** group at the same time.
 
 ## ServiceResponseGroup (object)
 A grouping (for example by type or length) of individual services the customer may select from. Individual services go into `serviceGroupOptions` array.
